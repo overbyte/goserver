@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 )
 
 func main() {
@@ -34,6 +35,12 @@ func main() {
 
 // the handler function accepts a connection which is both a Reader and a Writer
 func handle(conn net.Conn) {
+	// close the connection after 10 seconds
+	err := conn.SetDeadline(time.Now().Add(10 * time.Second))
+	if err != nil {
+		log.Println("Connection timed out")
+	}
+
 	scanner := bufio.NewScanner(conn)
 	// Scan() will return true until it reaches the end of a file or an error
 	for scanner.Scan() {
