@@ -53,11 +53,15 @@ func request(conn net.Conn) {
 		// current line from buffer
 		ln := scanner.Text()
 		fmt.Println(ln)
+		// print out verb, probably GET right now
 		if (i == 0) {
 			// split by space and return first 'word' which is the verb
 			// this code seems a bit brittle really
-			m := strings.Fields(ln)[0]
-			fmt.Println("Method: ", m)
+			f := strings.Fields(ln)
+			m := f[0]
+			u := f[1]
+			fmt.Println("Method:", m)
+			fmt.Println("URI:", u)
 		}
 		if (ln == "") {
 			// if the buffer returns an empty string, we're done - no need to
