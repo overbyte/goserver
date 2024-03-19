@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"time"
+	"strings"
 )
 
 func main() {
@@ -35,22 +35,59 @@ func main() {
 
 // the handler function accepts a connection which is both a Reader and a Writer
 func handle(conn net.Conn) {
-	// close the connection after 10 seconds
-	err := conn.SetDeadline(time.Now().Add(10 * time.Second))
-	if err != nil {
-		log.Println("Connection timed out")
-	}
-
-	scanner := bufio.NewScanner(conn)
-	// Scan() will return true until it reaches the end of a file or an error
-	for scanner.Scan() {
-		// print out the line
-		ln := scanner.Text()
-		fmt.Println(ln)
-		// conn has both a reader and a writer so use it to write back to the
-		// connection
-		fmt.Fprintf(conn, "I heard you say: %s\n", ln)
-	}
 	// don't close the connection
 	defer conn.Close()
+
+	// read request
+	request(conn)
+
+	// write back to request
+	respond(conn)
+}
+
+func request(conn net.Conn) {
+	// counter to determine current buffer line
+	i := 0
+	scanner := bufio.NewScanner(conn)
+	for scanner.Scan() {
+		// current line from buffer
+		ln := scanner.Text()
+		fmt.Println(ln)
+		if (i == 0) {
+			// split by space and return first 'word' which is the verb
+			// this code seems a bit brittle really
+			m := strings.Fields(ln)[0]
+			fmt.Println("Method: ", m)
+		}
+		if (ln == "") {
+			// if the buffer returns an empty string, we're done - no need to
+			// iterate i
+			break
+		}
+		i++
+	}
+}
+
+func respond(conn net.Conn) {
+	body := `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Welcome to the desert of the real</title>
+</head>
+<body>
+	<h1>Nobody can be told what the Matrix is...</h1>
+</body>
+</html>
+	`
+
+	// follow the HTTP spec in RFC 7230 specified by the Internet Engineering
+	// Task Force https://datatracker.ietf.org/doc/html/rfc7230
+	// return response
+	fmt.Fprint(conn, "HTTP/1.1 200 OK\r\n")
+	fmt.Fprintf(conn, "Content-Length: %d\r\n", len(body))
+	fmt.Fprint(conn, "Content-Type: text/html\r\n")
+	fmt.Fprint(conn, "\r\n")
+	fmt.Fprint(conn, body)
 }
