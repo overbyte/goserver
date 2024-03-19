@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"net"
 )
@@ -34,8 +34,13 @@ func main() {
 
 // the handler function accepts a connection which is both a Reader and a Writer
 func handle(conn net.Conn) {
-	io.WriteString(conn, "\nHello. Welcome to the Matrix\n")
-	fmt.Fprintln(conn, "This is the desert of the real")
-	fmt.Fprintf(conn, "%v", "this is percent v")
-	conn.Close()
+	scanner := bufio.NewScanner(conn)
+	// Scan() will return true until it reaches the end of a file or an error
+	for scanner.Scan() {
+		// print out the line
+		ln := scanner.Text()
+		fmt.Println(ln)
+	}
+	// don't close the connection
+	defer conn.Close()
 }
