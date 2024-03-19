@@ -40,6 +40,9 @@ func handle(conn net.Conn) {
 		// print out the line
 		ln := scanner.Text()
 		fmt.Println(ln)
+		// conn has both a reader and a writer so use it to write back to the
+		// connection
+		fmt.Fprintf(conn, "I heard you say: %s\n", ln)
 	}
 	// don't close the connection
 	defer conn.Close()
