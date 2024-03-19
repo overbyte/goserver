@@ -17,7 +17,8 @@ func main() {
 	// don't immediately close the connection
 	defer li.Close()
 
-	// loop
+	// loop - respond to connection request by accepting it and passing it to a
+	// handler function
 	for {
 		// on a connection, accept
 		conn, err := li.Accept()
@@ -25,10 +26,16 @@ func main() {
 			log.Println(err)
 		}
 
-		io.WriteString(conn, "\nHello. Welcome to the Matrix\n")
-		fmt.Fprintln(conn, "This is the desert of the real")
-		fmt.Fprintf(conn, "%v", "this is percent v")
-		conn.Close()
+		// use goroutine to respond
+		go handle(conn)
 	}
 
+}
+
+// the handler function accepts a connection which is both a Reader and a Writer
+func handle(conn net.Conn) {
+	io.WriteString(conn, "\nHello. Welcome to the Matrix\n")
+	fmt.Fprintln(conn, "This is the desert of the real")
+	fmt.Fprintf(conn, "%v", "this is percent v")
+	conn.Close()
 }
